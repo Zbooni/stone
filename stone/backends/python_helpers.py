@@ -61,7 +61,8 @@ def fmt_class(name, check_reserved=False):
 
 
 def fmt_func(name, check_reserved=False):
-    s = fmt_underscores(name)
+    # s = fmt_underscores(name)
+    s = name
     return _rename_if_reserved(s) if check_reserved else s
 
 
@@ -74,7 +75,8 @@ def fmt_type(data_type):
 
 
 def fmt_var(name, check_reserved=False):
-    s = fmt_underscores(name)
+    # s = fmt_underscores(name)
+    s = name
     return _rename_if_reserved(s) if check_reserved else s
 
 TYPE_IGNORE_COMMENT = "  # type: ignore"
