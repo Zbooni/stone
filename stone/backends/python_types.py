@@ -282,8 +282,8 @@ class PythonTypesBackend(CodeBackend):
         with self.block('__slots__ =', delim=('[', ']')):
             for field in data_type.fields:
                 field_name = fmt_var(field.name)
-                self.emit("'_%s_value'," % field_name)
-                self.emit("'_%s_present'," % field_name)
+                self.emit("'_stone_%s_value'," % field_name)
+                self.emit("'_stone_%s_present'," % field_name)
         self.emit()
 
     def _generate_struct_class_has_required_fields(self, data_type):
@@ -317,7 +317,7 @@ class PythonTypesBackend(CodeBackend):
         for field in data_type.fields:
             field_name = fmt_var(field.name)
             validator_name = generate_validator_constructor(ns, field.data_type)
-            full_validator_name = '{}._{}_validator'.format(class_name, field_name)
+            full_validator_name = '{}._stone_{}_validator'.format(class_name, field_name)
             self.emit('{} = {}'.format(full_validator_name, validator_name))
             if field.redactor:
                 self._generate_redactor(full_validator_name, field.redactor)
@@ -387,7 +387,7 @@ class PythonTypesBackend(CodeBackend):
                         continue
 
                     var_name = fmt_var(field.name)
-                    validator_name = '{}._{}_validator'.format(class_name,
+                    validator_name = '{}._stone_{}_validator'.format(class_name,
                                                                var_name)
                     items.append("('{}', {})".format(var_name, validator_name))
                 self.generate_multiline_list(
@@ -415,7 +415,7 @@ class PythonTypesBackend(CodeBackend):
                         continue
 
                     var_name = fmt_var(field.name)
-                    validator_name = '{}._{}_validator'.format(
+                    validator_name = '{}._stone_{}_validator'.format(
                         class_name, var_name)
                     items.append("('{}', {})".format(var_name, validator_name))
                 self.generate_multiline_list(
@@ -451,8 +451,8 @@ class PythonTypesBackend(CodeBackend):
             # initialize each field
             for field in data_type.fields:
                 field_var_name = fmt_var(field.name)
-                self.emit('self._{}_value = None'.format(field_var_name))
-                self.emit('self._{}_present = False'.format(field_var_name))
+                self.emit('self._stone_{}_value = None'.format(field_var_name))
+                self.emit('self._stone_{}_present = False'.format(field_var_name))
 
             # handle arguments that were set
             for field in data_type.fields:
@@ -505,9 +505,9 @@ class PythonTypesBackend(CodeBackend):
                 self.emit(':rtype: {}'.format(
                     self._python_type_mapping(ns, field_dt)))
                 self.emit('"""')
-                self.emit('if self._{}_present:'.format(field_name))
+                self.emit('if self._stone_{}_present:'.format(field_name))
                 with self.indent():
-                    self.emit('return self._{}_value'.format(field_name))
+                    self.emit('return self._stone_{}_value'.format(field_name))
 
                 self.emit('else:')
                 with self.indent():
@@ -533,20 +533,20 @@ class PythonTypesBackend(CodeBackend):
                         self.emit('del self.{}'.format(field_name_reserved_check))
                         self.emit('return')
                 if is_user_defined_type(field_dt):
-                    self.emit('self._%s_validator.validate_type_only(val)' %
+                    self.emit('self._stone_%s_validator.validate_type_only(val)' %
                               field_name)
                 else:
-                    self.emit('val = self._{}_validator.validate(val)'.format(field_name))
-                self.emit('self._{}_value = val'.format(field_name))
-                self.emit('self._{}_present = True'.format(field_name))
+                    self.emit('val = self._stone_{}_validator.validate(val)'.format(field_name))
+                self.emit('self._stone_{}_value = val'.format(field_name))
+                self.emit('self._stone_{}_present = True'.format(field_name))
             self.emit()
 
             # generate deleter for field
             self.emit('@{}.deleter'.format(field_name_reserved_check))
             self.emit('def {}(self):'.format(field_name_reserved_check))
             with self.indent():
-                self.emit('self._{}_value = None'.format(field_name))
-                self.emit('self._{}_present = False'.format(field_name))
+                self.emit('self._stone_{}_value = None'.format(field_name))
+                self.emit('self._stone_{}_present = False'.format(field_name))
             self.emit()
 
     def _generate_struct_class_repr(self, data_type):
@@ -555,9 +555,9 @@ class PythonTypesBackend(CodeBackend):
 
             def __repr__(self):
                 return 'Employee(first_name={!r}, last_name={!r}, age={!r})'.format(
-                    self._first_name_value,
-                    self._last_name_value,
-                    self._age_value,
+                    self._stone_first_name_value,
+                    self._stone_last_name_value,
+                    self._stone_age_value,
                 )
         """
         self.emit('def __repr__(self):')
@@ -572,7 +572,7 @@ class PythonTypesBackend(CodeBackend):
                 ))
                 with self.indent():
                     for f in data_type.all_fields:
-                        self.emit("self._{}_value,".format(fmt_var(f.name)))
+                        self.emit("self._stone_{}_value,".format(fmt_var(f.name)))
                 self.emit(")")
             else:
                 self.emit("return '%s()'" %
@@ -710,7 +710,7 @@ class PythonTypesBackend(CodeBackend):
             field_name = fmt_var(field.name)
             validator_name = generate_validator_constructor(
                 ns, field.data_type)
-            full_validator_name = '{}._{}_validator'.format(class_name, field_name)
+            full_validator_name = '{}._stone_{}_validator'.format(class_name, field_name)
             self.emit('{} = {}'.format(full_validator_name, validator_name))
 
             if field.redactor:
@@ -735,7 +735,7 @@ class PythonTypesBackend(CodeBackend):
                     if field.omitted_caller != omitted_caller:
                         continue
                     var_name = fmt_var(field.name)
-                    validator_name = '{}._{}_validator'.format(class_name, var_name)
+                    validator_name = '{}._stone_{}_validator'.format(class_name, var_name)
                     self.emit("'{}': {},".format(var_name, validator_name))
 
             if caller_in_parent:
